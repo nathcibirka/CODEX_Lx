@@ -16,4 +16,4 @@ Note: to use this code, you have to add lookup functions for Omega_k, w0 and wa 
         return self.ba.wa_fld
 
 
-And recompile via make class
+And recompile CLASS (including the wrapper) via 'make'
