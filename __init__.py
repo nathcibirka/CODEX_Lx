@@ -209,7 +209,7 @@ class rx_clusters:
         CALLING C SETUP FUNCTIONS
         --------------------
         """
-        self.clibLx.setup_cosmo(cosmo.h(), cosmo.Omega_m(), cosmo.Omega_k(), cosmo.Omega_nu, cosmo.Omega_w0_fld(), cosmo.Omega_wa_fld())
+        self.clibLx.setup_cosmo(cosmo.h(), cosmo.Omega_m(), cosmo.Omega_k(), cosmo.Omega_nu, cosmo.w0_fld(), cosmo.wa_fld())
         #self.clibLx.setup_nuisance(self.sigLx, self.siglam, self.norm_)
         self.clibLx.spline_init(os.getcwd()) # setup splines for Tinker hmf and noisemap
         self.clibLx.setup_sigma2d_spline(self.M_array, self.z_array, self.sigma_M_z_array.reshape(self.zsteps * self.Msteps))
@@ -268,7 +268,7 @@ class rx_clusters:
 
         # hand over current sigma(M,z) array, cosmology and nuisance parameters (has to be repeated in every step)
         self.clibLx.setup_sigma2d_spline(self.M_array, self.z_array, self.sigma_M_z_array.reshape(self.zsteps * self.Msteps))
-        self.clibLx.setup_cosmo(cosmo.h(), cosmo.Omega_m(), cosmo.Omega_b())
+        self.clibLx.setup_cosmo(cosmo.h(), cosmo.Omega_m(), cosmo.Omega_k(), cosmo.Omega_nu, cosmo.w0_fld(), cosmo.wa_fld())
         #self.clibLx.setup_nuisance(self.sigLx, self.siglam, self.norm_)
         loglkl = 0.
 

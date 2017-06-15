@@ -341,7 +341,7 @@ double volumez(double z,  double Texp){
 /* comoving distance in Mpc */
 double distance(double z){
 
-	double result,error;
+	double dist,result,error;
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(NEVAL);
 	gsl_function F;
 	
