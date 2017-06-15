@@ -173,7 +173,7 @@ class rx_clusters:
 
         # ctypes interface: setup functions to hand over parameters
         self.clibLx.setup_cosmo.restype = None
-        self.clibLx.setup_cosmo.argtypes = (ct.c_double,ct.c_double,ct.c_double)
+        self.clibLx.setup_cosmo.argtypes = (ct.c_double,ct.c_double,ct.c_double,ct.c_double,ct.c_double,ct.c_double)
 
         # setup current nuisance parameters
         #self.clibLx.setup_nuisance.restype = None
@@ -209,7 +209,7 @@ class rx_clusters:
         CALLING C SETUP FUNCTIONS
         --------------------
         """
-        self.clibLx.setup_cosmo(cosmo.h(), cosmo.Omega_m(), cosmo.Omega_b())
+        self.clibLx.setup_cosmo(cosmo.h(), cosmo.Omega_m(), cosmo.Omega_k(), cosmo.Omega_nu, cosmo.Omega_w0_fld(), cosmo.Omega_wa_fld())
         #self.clibLx.setup_nuisance(self.sigLx, self.siglam, self.norm_)
         self.clibLx.spline_init(os.getcwd()) # setup splines for Tinker hmf and noisemap
         self.clibLx.setup_sigma2d_spline(self.M_array, self.z_array, self.sigma_M_z_array.reshape(self.zsteps * self.Msteps))
