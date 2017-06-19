@@ -101,7 +101,12 @@ setup_data()
 /* global variables */
 double h;
 double Omega_m;
-double Omega_b;
+double Omega_nu;
+double Omega_k;
+
+// dark energy equation of state
+double w0 = -1.;
+double wa = 0.;
 
 /* bins for likelihood */
 double Lx_vec[9] = {1e42, 5e42, 1e43, 5e43, 1e44, 5e44, 1e45, 5e45, 1e46};
@@ -173,7 +178,7 @@ gsl_interp_accel *acc_z_lnR_z;
 
 
 /* setup functions, must be called first from Python. Initalise splines, read binned data and prepare arrays */
-void setup_cosmo(double cosmoh, double cosmoOmega_m, double cosmoOmega_b);
+void setup_cosmo(double cosmoh, double cosmoOmega_m, double cosmoOmega_k, double cosmoOmega_nu, double cosmow0, double cosmowa);
 void setup_data(double *data);
 void setup_sigma_spline(double *min, double *sigmain);
 void setup_sigma2d_spline(double *min, double *zin, double *sigmain);
@@ -242,12 +247,20 @@ struct BPARAM{
 
 /* get current cosmological parameters from MontePython 
  * -----------------------
- * read Hubble parameter h, Omega_m and Omega_b
+ * read Hubble parameter h, Omega_m, Omega_k, Omega_nu, w0/wa for dark energy equation of state
  */
-void setup_cosmo(double cosmoh, double cosmoOmega_m, double cosmoOmega_b){
+void setup_cosmo(double cosmoh,
+				 double cosmoOmega_m,
+				 double cosmoOmega_k,
+				 double cosmoOmega_nu,
+				 double cosmow0,
+				 double cosmowa){
 	h = cosmoh;
 	Omega_m = cosmoOmega_m;
-	Omega_b = cosmoOmega_b;
+	Omega_k = cosmoOmega_k;
+	Omega_nu = cosmoOmega_nu;
+	w0 = cosmow0;
+	wa = cosmowa;
 }
 
 
@@ -283,7 +296,7 @@ void setup_sigma2d_spline(double *min, double *zin, double *sigmain){
 	for (int i = 0; i < Mstep; ++i)
 	{
 		lnM_array[i] = log(min[i]);
-		lnR_array[i] = log(pow((3. * min[i] / 4. / M_PI / rhocrit / Omega_m),1./3.));
+		lnR_array[i] = log(pow((3. * min[i] / 4. / M_PI / rhocrit / (Omega_m - Omega_nu)),1./3.));
 		// fprintf(stdout, "%f \n", lnR_array[i]);
 	}
 
@@ -291,10 +304,12 @@ void setup_sigma2d_spline(double *min, double *zin, double *sigmain){
 }
 
 
-/* calculate E(z) = H(z)/H0 without radiation and assuming cosmological constant */
+/* calculate E(z) = H(z)/H0 without radiation and assuming w_DE = w0 + (1.-a) * wa */
 double E(double z){
 	double scale = 1.+z;
-	double Esq=Omega_m * pow(scale,3)+(1.-Omega_m);
+    double w_eff = w0 + (1. - scale) * wa;
+    double Esq = Omega_m * pow(scale,3) + (1.-Omega_k-Omega_m) * pow(scale,-3*(1.+w_eff) ) + Omega_k * pow(scale,2);
+	// double Esq=Omega_m * pow(scale,3)+(1.-Omega_m);
 	return sqrt(Esq);
 }
 
@@ -326,7 +341,7 @@ double volumez(double z,  double Texp){
 /* comoving distance in Mpc */
 double distance(double z){
 
-	double result,error;
+	double dist,result,error;
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc(NEVAL);
 	gsl_function F;
 	
@@ -336,6 +351,17 @@ double distance(double z){
 	gsl_integration_qag(&F,0.0,z,0.0,1e-4,NEVAL,GSL_INTEG_GAUSS15,w,&result,&error);
 	
 	gsl_integration_workspace_free(w);
+
+	// take care of curvature
+    if (Omega_k < 0){
+      dist = 2997.9/h/sqrt(-Omega_k) * sin(sqrt(-Omega_k) * result/2997.9*h);
+    }
+    if (Omega_k > 0){
+      dist = 2997.9/h/sqrt(Omega_k) * sinh(sqrt(Omega_k) * result/2997.9*h);
+    }
+    if (Omega_k == 0){
+      dist = result;
+    }
 
 	return(result);
 }
@@ -745,7 +771,7 @@ double dndlnM(double lnM, double z, double Delta){
 	double rho_m;
 
 	M = exp(lnM);
-	rho_m = rhocrit * Omega_m;
+	rho_m = rhocrit * (Omega_m - Omega_nu);
 
 	Delta = Delta / Omega_m_z(z);
 	R = pow((3. * M / 4. / M_PI / rho_m),(1./3.));
