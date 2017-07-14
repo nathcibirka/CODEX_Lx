@@ -13,8 +13,6 @@ Computes N(etaOb, Texp, z)
 // compile for Linux gcc -shared -o clibLx.so -fPIC clibLx.c -I/sw/include -lgsl -lgslcblas -lm -O3 - fopenmp
 // 					 gcc -shared -o szlib.so -fPIC szlib.c -lgsl -lm -O3 -std=c99 -lgslcblas -fopenmp
 
-// compile to run on the Alphacrucis cluster: gcc -shared -o clibLx.so clibLx.c -lgsl -lgslcblas -lm -std=c99 -fPIC -L/sto/home/william/local/lib/ -fopenmp -Wl,-rpath -Wl,/sto/home/william/local/include/
-
 Note: The following functions have to be called first:
 setup_cosmo()
 setup_nuisance()
